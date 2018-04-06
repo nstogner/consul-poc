@@ -15,6 +15,7 @@ func main() {
 	var cfg struct {
 		ServiceName string   `envconfig:"service_name" default:"abc"`
 		ServiceTags []string `envconfig:"service_tags"`
+		ServerAddr  string   `envconfig:"service_addr" default:"127.0.0.1"`
 		Port        int      `default:"7000"`
 		ConsulAddr  string   `envconfig:"consul_addr" default:"localhost:8500"`
 	}
@@ -22,7 +23,7 @@ func main() {
 
 	if err := backoff.Retry(3, time.Second, func() error {
 		log.Printf("[server] Registering with consul at address %q", cfg.ConsulAddr)
-		return registerWithConsul(cfg.ConsulAddr, cfg.ServiceName, cfg.ServiceTags, cfg.Port)
+		return registerWithConsul(cfg.ConsulAddr, cfg.ServiceName, cfg.ServiceTags, cfg.ServerAddr, cfg.Port)
 	}); err != nil {
 		log.Fatal("[server] Unable to register service with consul: ", err)
 	}
@@ -40,7 +41,7 @@ func main() {
 	)
 }
 
-func registerWithConsul(consulAddr, serviceName string, serviceTags []string, servicePort int) error {
+func registerWithConsul(consulAddr, serviceName string, serviceTags []string, serviceAddr string, servicePort int) error {
 	c, err := consulapi.NewClient(&consulapi.Config{
 		Address: consulAddr,
 	})
@@ -49,8 +50,9 @@ func registerWithConsul(consulAddr, serviceName string, serviceTags []string, se
 	}
 
 	return c.Agent().ServiceRegister(&consulapi.AgentServiceRegistration{
-		Name: serviceName,
-		Tags: serviceTags,
-		Port: servicePort,
+		Name:    serviceName,
+		Tags:    serviceTags,
+		Address: serviceAddr,
+		Port:    servicePort,
 	})
 }
