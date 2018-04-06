@@ -1,0 +1,40 @@
+version: '3'
+services:
+  client:
+    environment:
+      SERVER_ADDR: 'http://abc.service.consul:7000'
+    build:
+      context: .
+      dockerfile: ./client.Dockerfile
+    depends_on:
+      - server
+    dns:
+      - '169.254.1.1'
+  server:
+    environment:
+      CONSUL_ADDR: 'consul:8500'
+      SERVER_NAME: 'abc'
+      SERVER_TAGS: 'alphabet,letters'
+    build:
+      context: .
+      dockerfile: ./server.Dockerfile
+    ports:
+      - '7000:7000'
+    depends_on:
+      - consul
+  consul:
+    image: consul
+    entrypoint:
+      - 'consul'
+      - 'agent'
+      - '--dev'
+      - '--client=0.0.0.0'
+        #      - '--dns-port=53'
+        # expose:
+      #      - '53/udp'
+    ports:
+      - '8600:8600' # DNS queries
+      - '8400:8400' # gRPC clients
+      - '8500:8500' # HTTP clients
+        #      - '127.0.0.1:53:53/udp'
+        #- '53:53/udp'
