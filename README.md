@@ -4,9 +4,11 @@
 
 https://medium.com/zendesk-engineering/making-docker-and-consul-get-along-5fceda1d52b9
 
-### 1. Spin up new VM with Ubuntu 16.04
+## Guide
 
-### 2. Install docker
+### Spin up new VM with Ubuntu 16.04
+
+### Install docker
 
 ```
 sudo apt-get update
@@ -29,14 +31,7 @@ sudo apt-get update
 sudo apt-get install docker-ce
 ```
 
-### 3. Run consul
-
-```
-# sudo docker run -d --net=host consul:latest
-sudo docker run --net=host consul:latest consul agent --client=169.254.1.1 --dev
-```
-
-### 4. Setup Dummy Interface
+### Setup Dummy Interface
 
 ```
 $ sudo ip link add dummy0 type dummy
@@ -58,7 +53,7 @@ $ ip addr show dev dummy0
        valid_lft forever preferred_lft forever
 ```
 
-### 5. Configure interface
+### Configure interface
 
 Place the following file into `/etc/systemd/network/dummy0.netdev`:
 
@@ -80,7 +75,7 @@ Address=169.254.1.1/32
 
 `sudo systemctl restart systemd-networkd`
 
-### 6. Install & Setup dnsmasq
+### Install & Setup dnsmasq
 
 `sudo apt-get install dnsmasq`
 
@@ -92,3 +87,20 @@ listen-address=127.0.0.1
 listen-address=169.254.1.1
 ```
 
+### Run consul (in terminal 1)
+
+```
+sudo docker run --net=host consul:latest consul agent --client=169.254.1.1 --dev
+```
+
+### Run server (in terminal 2)
+
+```
+sudo docker run -p 7000:7000 -e SERVICE_ADDR=169.254.1.1 -e CONSUL_ADDR=169.254.1.1:8500 abc-server
+```
+
+### Run client (in terminal 3)
+
+```
+sudo docker run --dns 169.254.1.1 -e SERVER_ADDR=http://abc.service.consul:7000 abc-client
+```
