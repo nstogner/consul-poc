@@ -10,6 +10,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	fmt.Println("-------------")
 	for i, inf := range infs {
 		fmt.Printf("[%d] Name: %s\n", i, inf.Name)
 		fmt.Printf("[%d] HardwareAddr: %s\n", i, inf.HardwareAddr)
@@ -21,5 +23,6 @@ func main() {
 		for _, a := range addrs {
 			fmt.Printf("[%d] Addr: %s\n", i, a.String())
 		}
+		fmt.Println("-------------")
 	}
 }
